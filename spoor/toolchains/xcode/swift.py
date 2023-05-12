@@ -83,7 +83,7 @@ def main(argv, build_tools):
         if 'llvm-bc' in outputs and outputs['llvm-bc'] in output_files
     }
 
-  if len(output_file_map) == 0:
+  if not output_file_map:
     return
 
   target = Target(known_args.target) if known_args.target else None
@@ -104,7 +104,7 @@ def main(argv, build_tools):
   thread_pool_size = min(2 * multiprocessing.cpu_count(), len(output_file_map))
   with concurrent.futures.ThreadPoolExecutor(thread_pool_size) as executor:
     futures = []
-    for _, outputs in output_file_map.items():
+    for outputs in output_file_map.values():
       future = executor.submit(action, build_tools, target, outputs)
       futures.append(future)
     for future in futures:

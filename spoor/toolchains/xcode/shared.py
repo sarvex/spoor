@@ -61,8 +61,7 @@ class BuildTools:
 
   @staticmethod
   def _get_developer_path():
-    developer_dir = os.getenv('DEVELOPER_DIR')
-    if developer_dir:
+    if developer_dir := os.getenv('DEVELOPER_DIR'):
       return developer_dir
     result = subprocess.run(['xcode-select', '--print-path'],
                             capture_output=True,
@@ -101,8 +100,8 @@ class Target:
     self.architecture = architecture
     self.vendor = vendor
     platform_components = re.search('([a-zA-Z]+)([0-9.]+)', platform)
-    self.platform = platform_components.group(1)
-    self.platform_version = platform_components.group(2)
+    self.platform = platform_components[1]
+    self.platform_version = platform_components[2]
     self.platform_variant = platform_variant
 
   def __str__(self):
@@ -134,9 +133,6 @@ class RuntimeFramework:
             f'Unknown XCFramework format version "{format_version}"')
 
       for library in plist['AvailableLibraries']:
-        identifier = library['LibraryIdentifier']
-        path = library['LibraryPath']
-        framework_name = str(pathlib.Path(path).with_suffix(''))
         architectures = library['SupportedArchitectures']
         platform = library['SupportedPlatform']
         if 'SupportedPlatformVariant' in library:
@@ -146,8 +142,11 @@ class RuntimeFramework:
         if (platform == target.platform and
             platform_variant == target.platform_variant and
             target.architecture in architectures):
+          identifier = library['LibraryIdentifier']
           framework_path = \
-              f'{spoor_frameworks_path}/SpoorRuntime.xcframework/{identifier}'
+                f'{spoor_frameworks_path}/SpoorRuntime.xcframework/{identifier}'
+          path = library['LibraryPath']
+          framework_name = str(pathlib.Path(path).with_suffix(''))
           return RuntimeFramework(framework_path, framework_name)
     return None
 

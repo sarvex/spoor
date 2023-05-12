@@ -58,8 +58,8 @@ class BuildPhase:
       raw_phase = raw_phase.strip(' |+-')
       expression = r'^(\d+): (.+?),'
       result = re.search(expression, raw_phase)
-      phase_id = int(result.group(1))
-      phase_type = BuildPhase.Type(result.group(2))
+      phase_id = int(result[1])
+      phase_type = BuildPhase.Type(result[2])
       if phase_type in {
           BuildPhase.Type.ANALYZER, BuildPhase.Type.ASSEMBLER,
           BuildPhase.Type.BACKEND, BuildPhase.Type.COMPILER,
@@ -68,25 +68,25 @@ class BuildPhase:
       }:
         expression = r'^\d+: .*, {(.+)}, (.+)$'
         result = re.search(expression, raw_phase)
-        raw_dependencies = result.group(1)
+        raw_dependencies = result[1]
         dependency_ids = {int(dep) for dep in raw_dependencies.split(', ')}
-        language = result.group(2)
+        language = result[2]
         phase = BuildPhase(phase_id, phase_type, None, dependency_ids, language,
                            None)
       elif phase_type == BuildPhase.Type.BIND_ARCH:
         expression = r'^\d+: bind-arch, "(.+)", {(.*)}, (.+)$'
         result = re.search(expression, raw_phase)
-        arch = result.group(1)
-        raw_dependencies = result.group(2)
+        arch = result[1]
+        raw_dependencies = result[2]
         dependency_ids = {int(dep) for dep in raw_dependencies.split(', ')}
-        language = result.group(3)
+        language = result[3]
         phase = BuildPhase(phase_id, phase_type, None, dependency_ids, language,
                            arch)
       elif phase_type == BuildPhase.Type.INPUT:
         expression = r'^\d+: input, "(.*)", (.+)'
         result = re.search(expression, raw_phase)
-        input_file = result.group(1)
-        language = result.group(2)
+        input_file = result[1]
+        language = result[2]
         phase = BuildPhase(phase_id, phase_type, input_file, {}, language, None)
       else:
         raise ValueError(f'Unhandled Clang driver phase "{phase_type}"')
